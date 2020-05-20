@@ -12,32 +12,22 @@ namespace HubChatAgentLookUp
 {
     internal class CustomerChats
     {
-        private int _accountId;
-        private int _widgetId;
-        private int _conversationId;
-        private string _widgetUUID;
-        private string _channel;
-
         private Mutex _queueMutex = new Mutex();
         private Publisher _publisher = null;
         private bool _shouldIPoll = true;
-        internal int AccountId { get { return _accountId; } set { _accountId = value; } }
-        internal int WidgetId { get { return _widgetId; } set { _widgetId = value; } }
-        internal int ConversationId { get { return _conversationId; } set { _conversationId = value; } }
-        internal string WidgetUUID { get { return _widgetUUID; } set { _widgetUUID = value; } }
-        internal string Channel { get { return _channel; } set { _channel = value; } }
+        
 
-        internal CustomerChats()
+        internal CustomerChats(Publisher publisherObj)
         {
-            this._publisher = new Publisher();
+            this._publisher = publisherObj;
         }
 
         public void AgentCustomerMapper()
         {
             try
             {
-                int agentId = 0;
-                CustomerChats CusObj = null;
+                //int agentId = 0;
+                CustomerData CusObj = null;
                 Logger.Info("Agent Customer Mapper Started ");
 
                 while (!SharedClass.HasStopSignal && this._shouldIPoll)
@@ -46,10 +36,12 @@ namespace HubChatAgentLookUp
                     {
                         if (this.QueueCount() > 0)
                         {
-                            CusObj = new CustomerChats();
+                            Logger.Info("Processing customer chats,Queue count : " + this.QueueCount().ToString());
+                            CusObj = new CustomerData();
                             CusObj = this.DeQueue();
+                            Logger.Info("Processing customer chats :" + CusObj.Channel);
 
-                            agentId = this.GetAvailableAgent(CusObj);
+                            (int agentId, bool IsPingAgent) = this.GetAvailableAgent(CusObj);
                             if (agentId > 0)
                             {
                                 JObject wsMessageObj = new JObject();
@@ -87,8 +79,7 @@ namespace HubChatAgentLookUp
                     }
                     finally
                     {
-                        if (CusObj != null)
-                            this.EnQueue(CusObj);
+                        
                     }
                 }
             }
@@ -98,9 +89,10 @@ namespace HubChatAgentLookUp
             }
 
         }
-        private int GetAvailableAgent(CustomerChats chat)
+        private (int, bool) GetAvailableAgent(CustomerData chat)
         {
             int agentId = 0;
+            bool IsPing = false;
             SqlConnection sqlCon = new SqlConnection(SharedClass.ConnectionString);
             try
             {
@@ -112,6 +104,7 @@ namespace HubChatAgentLookUp
                 sqlCommand.Parameters.Add(ProcedureParameter.WIDGET_ID, SqlDbType.BigInt).Value = chat.WidgetId;
                 sqlCommand.Parameters.Add(ProcedureParameter.CONVERSATION_ID, SqlDbType.BigInt).Value = chat.ConversationId;
                 sqlCommand.Parameters.Add(ProcedureParameter.AGENT_ID, SqlDbType.Int).Direction = ParameterDirection.Output;
+                sqlCommand.Parameters.Add(ProcedureParameter.IS_PING, SqlDbType.Bit).Direction = ParameterDirection.Output;
                 sqlCommand.Parameters.Add(ProcedureParameter.SUCCESS, SqlDbType.Bit).Direction = ParameterDirection.Output;
                 sqlCommand.Parameters.Add(ProcedureParameter.MESSAGE, SqlDbType.VarChar, 1000).Direction = ParameterDirection.Output;
                 sqlCon.Open();
@@ -121,7 +114,10 @@ namespace HubChatAgentLookUp
                 if (Convert.ToBoolean(sqlCommand.Parameters[ProcedureParameter.SUCCESS].Value) == true)
                 {
                     if (!Convert.IsDBNull(sqlCommand.Parameters[ProcedureParameter.AGENT_ID].Value) && Convert.ToInt32(sqlCommand.Parameters[ProcedureParameter.AGENT_ID].Value) > 0)
+                    {
                         agentId = Convert.ToInt32(sqlCommand.Parameters[ProcedureParameter.AGENT_ID].Value);
+                        IsPing = Convert.ToBoolean(sqlCommand.Parameters[ProcedureParameter.IS_PING].Value);
+                    }
                 }
                 else
                 {
@@ -140,10 +136,10 @@ namespace HubChatAgentLookUp
                 if (sqlCon.State == ConnectionState.Open)
                     sqlCon.Close();
             }
-            return agentId;
+            return (agentId,IsPing);
         }
 
-        internal bool EnQueue(CustomerChats Chat)
+        internal bool EnQueue(CustomerData Chat)
         {
             bool enQueued = false;
             try
@@ -182,9 +178,9 @@ namespace HubChatAgentLookUp
             }
             return count;
         }
-        private CustomerChats DeQueue()
+        private CustomerData DeQueue()
         {
-            CustomerChats Chat = null;
+            CustomerData Chat = null;
             try
             {
                 while (!this._queueMutex.WaitOne())

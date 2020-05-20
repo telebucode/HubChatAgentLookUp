@@ -15,7 +15,7 @@ namespace HubChatAgentLookUp
     internal static class ProcedureParameter
     {
         internal const string UUID = "@UUID";
-        internal const string ACCOUNT_CALLER_ID = "@CallerID";
+        internal const string IS_PING = "@IsPing";
         internal const string ACCOUNT_ID = "@AccountId";
         internal const string WIDGET_ID = "@WidgetId";
         internal const string CONVERSATION_ID = "@ConversationId";

@@ -13,7 +13,8 @@ namespace HubChatAgentLookUp
 {
     public partial class HubChatAgentLookUp : ServiceBase
     {
-        //Thread MainThread;
+        Thread mainThread;
+        ApplicationController appController = null;
         public HubChatAgentLookUp()
         {
             InitializeComponent();
@@ -21,11 +22,25 @@ namespace HubChatAgentLookUp
 
         protected override void OnStart(string[] args)
         {
-            
+            appController = new ApplicationController();
+            mainThread = new Thread(new ThreadStart(appController.Start));
+            mainThread.Name = "ApplicationController";
+            mainThread.Start();
         }
 
         protected override void OnStop()
         {
+            SharedClass.HasStopSignal = true;
+            Thread.CurrentThread.Name = "StopSignal";
+            Logger.Info("========= Service Stop Signal Received ===========");
+            // Add code here to perform any tear-down necessary to stop your service.
+            appController.Stop();
+            while (!SharedClass.IsServiceCleaned)
+            {
+                Logger.Info("Sleeping In OnStop. Service Not Yet Cleaned");
+                Thread.Sleep(1000);
+            }
+            Logger.Info("========= Service Stopped ===========");
         }
     }
 }

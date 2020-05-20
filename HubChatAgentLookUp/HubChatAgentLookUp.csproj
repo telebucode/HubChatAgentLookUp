@@ -75,6 +75,7 @@
   <ItemGroup>
     <Compile Include="ApplicationController.cs" />
     <Compile Include="CustomerChats.cs" />
+    <Compile Include="CustomerData.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="HubChatAgentLookUp.cs">
       <SubType>Component</SubType>

@@ -152,7 +152,7 @@ namespace HubChatAgentLookUp
                 switch (Action)
                 {
                     case "NEWCHAT":
-                        CustomerChats chat = new CustomerChats();
+                        CustomerData chat = new CustomerData();
                         chat.AccountId = AccountId;
                         chat.Channel = Channel;
                         chat.WidgetId = WidgetId;

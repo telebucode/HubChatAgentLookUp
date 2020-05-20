@@ -42,9 +42,11 @@ namespace HubChatAgentLookUp
                     JObject message = null;
                     while (ws.State == WebSocketState.Open && !SharedClass.HasStopSignal)
                     {
+                        Logger.Info("While block in broadcastMsgToSubscriber QueueCount :" + this.QueueCount().ToString());
                         if (this.QueueCount() > 0)
                         {
                             message = this.DeQueue();
+                            Logger.Info(string.Format("Processing ws notifications : {0}", message));
                             if (message != null)
                             {
                                 ArraySegment<byte> bytesToSend = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message.ToString()));

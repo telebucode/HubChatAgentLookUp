@@ -15,7 +15,7 @@ namespace HubChatAgentLookUp
         private static string _connectionString = null;
         //private static Dictionary<long, CampaignInstance> _activeCampaigns = new Dictionary<long, CampaignInstance>();
         private static Listener _listener = null;
-        private static Queue<CustomerChats> _Customerqueue = null;//new Queue<CustomerChats>();
+        private static Queue<CustomerData> _Customerqueue = null;
         private static List<KeyValuePair<long, string>> _campaignInstanceStatuese = new List<KeyValuePair<long, string>>();
 
 
@@ -50,12 +50,12 @@ namespace HubChatAgentLookUp
                 SharedClass._listener = value;
             }
         }
-        internal static Queue<CustomerChats> Customerqueue
+        internal static Queue<CustomerData> Customerqueue
         {
             get
             {
                 if (SharedClass._Customerqueue == null)
-                    SharedClass._Customerqueue = new Queue<CustomerChats>();
+                    SharedClass._Customerqueue = new Queue<CustomerData>();
                 return SharedClass._Customerqueue;
             }
             set

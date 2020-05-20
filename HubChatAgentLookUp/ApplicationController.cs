@@ -27,7 +27,7 @@ namespace HubChatAgentLookUp
 
             publisherCls = new Publisher();
 
-            CustomerChats chat = new CustomerChats();
+            CustomerChats chat = new CustomerChats(publisherCls);
             this._ChatsThread = new Thread(new ThreadStart(chat.AgentCustomerMapper));
             this._ChatsThread.Name = "ChatsProcessor";
             this._ChatsThread.Start();
@@ -95,135 +95,7 @@ namespace HubChatAgentLookUp
             }
 
         }
-        /// <summary>
-        /// Starts the polling.
-        /// </summary>
-        private void StartPolling()
-        {
-            try
-            {
-
-                Logger.Info("Started polling " + SharedClass.HasStopSignal.ToString());
-                SqlConnection sqlConnection = new SqlConnection(SharedClass.ConnectionString);
-                //SqlCommand sqlCommand = new SqlCommand(StoredProcedure.GET_PENDING_DIALOUT_CAMPAIGN_INSTANCES, sqlConnection);
-                //SqlDataAdapter da = null;
-                //DataSet ds = null;
-                //while (!SharedClass.HasStopSignal)
-                //{
-                    
-                //    try
-                //    {
-                //        sqlCommand.Parameters.Clear();
-                //        sqlCommand.Parameters.Add(ProcedureParameter.LAST_SLNO, SqlDbType.BigInt).Value = _campaignInstanceLastSlno;
-                //        sqlCommand.Parameters.Add(ProcedureParameter.SUCCESS, SqlDbType.Bit).Direction = ParameterDirection.Output;
-                //        sqlCommand.Parameters.Add(ProcedureParameter.MESSAGE, SqlDbType.VarChar, 1000).Direction = ParameterDirection.Output;
-                //        da = new SqlDataAdapter(sqlCommand);
-                //        da.Fill(ds = new DataSet());
-                        
-                //        if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
-                //        {
-                            
-                //            foreach (DataRow campaignInstanceRow in ds.Tables[0].Rows)
-                //            {
-                //                try
-                //                {
-                //                    Campaign campaign = new Campaign();
-                //                    CampaignInstance instance = new CampaignInstance();
-                //                    bool isExcelDataPollingStart = false;
-
-                //                    TimeZone timeZone = new TimeZone();
-                //                    CampaignInstanceProcessor instanceProcessor = null;
-                //                    instance.Id = Convert.ToInt32(campaignInstanceRow["InstanceId"]);
-                //                    timeZone.TimeZoneName = campaignInstanceRow["TimeZone"].ToString();
-                //                    timeZone.UtcOffSetInMinutes = Convert.ToInt32(campaignInstanceRow["UtcOffSetInMinutes"]);
-                //                    timeZone.Id = Convert.ToByte(campaignInstanceRow["TargetTimeZoneId"]);
-                //                    campaign.Id = Convert.ToInt32(campaignInstanceRow["CampaignId"]);
-                //                    campaign.TimeZone = timeZone;
-                //                    campaign.FromTime = campaignInstanceRow["FromTime"].ToString();
-                //                    campaign.ToTime = campaignInstanceRow["ToTime"].ToString();
-                //                    campaign.MaxLines = Convert.ToByte(campaignInstanceRow["MaximumLines"]);
-                //                    campaign.AllowOtherAgentsToJoin = Convert.ToBoolean(campaignInstanceRow["AllowOtherAgentsToJoin"]);
-                //                    instance.InitializationType = Convert.ToByte(campaignInstanceRow["InitializationTypeID"]);
-                //                    if (campaignInstanceRow.Table.Columns.Contains("IsSkillGroupBasedDistribution") && campaignInstanceRow["IsSkillGroupBasedDistribution"] != DBNull.Value)
-                //                        campaign.IsSkillGroupBasedDistribution = Convert.ToBoolean(campaignInstanceRow["IsSkillGroupBasedDistribution"].ToString());
-                //                    if (instance.InitializationType == 0)
-                //                    {
-                //                        Logger.Info(string.Format("Campaign Instance Id : {0} conatains initializationType as 0 so Skipping", instance.Id));
-                //                        continue;
-                //                    }
-                //                    Logger.Info(string.Format("Initialization Id : {0} And CampaignId : {1},FilesCount : {2}", instance.InitializationType, campaign.Id, ds.Tables[1].Rows.Count));
-                //                    if (!Convert.ToBoolean(campaignInstanceRow["IsInstanceAlreadyExists"]))
-                //                    {
-                //                        if (ds.Tables[1].Rows.Count > 0 && instance.InitializationType == 1)
-                //                        {
-                //                            isExcelDataPollingStart = true;
-                //                            foreach (DataRow campaignDataFile in ds.Tables[1].Select("CampaignId = " + campaign.Id.ToString()))
-                //                            {
-                //                                Logger.Info(string.Format("Files fetching : {0} And FileMetdata : {1}", campaignDataFile["FilePath"], campaignDataFile["FileMetadata"]));
-                //                                ExcelFileInfo dataFileInfo = new ExcelFileInfo();
-                //                                dataFileInfo.FilePath = Convert.ToString(campaignDataFile["FilePath"]);
-                //                                dataFileInfo.MetaData = Convert.ToString(campaignDataFile["FileMetadata"]);
-                //                                campaign.DataFiles.Add(dataFileInfo);
-                //                            }
-                //                        }
-                //                        else if (ds.Tables[1].Rows.Count > 0)
-                //                        {   
-                //                            if(instance.InitializationType==2 || instance.InitializationType==3)
-                //                            {
-                //                                isExcelDataPollingStart = false;
-                //                                Logger.Info(string.Format("Campaign relaunching with initialization type : {0} and Instace Id : {1}", instance.InitializationType == 2 ? "Disposition" : "End reason", instance.Id));
-                //                            }
-                                            
-                //                        }
-                //                    }
-
-                //                    instance.Campaign = campaign;
-                //                    _campaignInstanceLastSlno = instance.Id;
-                //                    instanceProcessor = new CampaignInstanceProcessor(instance, publisherCls, isExcelDataPollingStart);
-                //                    instance.Processor = instanceProcessor;
-                //                    System.Threading.Thread cipt = new Thread(new ThreadStart(instance.Processor.Start));
-                //                    cipt.Name = "CampaignInstanceProcessor_" + instance.Id.ToString();
-                //                    cipt.Start();
-                //                }
-                //                catch (Exception e)
-                //                {
-                //                    Logger.Error(string.Format("Error In For Loop. {0}", e.ToString()));
-                //                }
-                //            }
-                //        }
-                //        try
-                //        {
-                //            System.Threading.Thread.Sleep(SharedClass.POLL_INTERVAL_IN_SECONDS * 1000);
-                //        }
-                //        catch (System.Threading.ThreadAbortException e)
-                //        {
-
-                //        }
-                //        catch (System.Threading.ThreadInterruptedException e)
-                //        {
-
-                //        }
-                //    }
-                //    catch (Exception e)
-                //    {
-                //        Logger.Error(string.Format("Error while getting pending campaign instances, {0}", e.ToString()));
-                //    }
-                //    finally
-                //    {
-                //        if (sqlConnection.State == ConnectionState.Open)
-                //            sqlConnection.Close();
-
-                //        if (sqlCommand != null)
-                //            sqlCommand.Dispose();
-                //    }
-                //}
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex.ToString());
-            }
-            Logger.Info("Exit");
-        }
+        
 
         private void LoadConfig()
         {
